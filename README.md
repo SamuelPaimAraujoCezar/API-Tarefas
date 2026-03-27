@@ -71,8 +71,11 @@ Crie um arquivo `.env` na raiz do projeto:
 PORT=3000
 ```
 
+## 💾 Banco de dados
+
+- SQLite
+
 ## 📌 Observações
 
-- Os dados são armazenados em arquivo (`tarefas.json`)
 - A API possui validação de dados
 - Projeto com fins de estudo
