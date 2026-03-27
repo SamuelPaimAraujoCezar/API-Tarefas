@@ -1,81 +1,189 @@
-# API de Tarefas
+# 📝 API de Tarefas
 
-API simples de gerenciamento de tarefas desenvolvida com Node.js e Express.
+API RESTful para gerenciamento de tarefas, desenvolvida com Node.js, Express e MongoDB, seguindo boas práticas de arquitetura em camadas.
 
-## 🚀 Funcionalidades
+---
 
-- Listar tarefas
-- Buscar tarefa por ID
-- Criar tarefa
-- Atualizar tarefa
-- Deletar tarefa
-
-## 🛠️ Tecnologias
+## 🚀 Tecnologias utilizadas
 
 - Node.js
 - Express
+- MongoDB
+- Mongoose
+- Dotenv
 
-## 📦 Instalação
+---
 
-```bash
-npm install
+## 🧱 Arquitetura
+
+O projeto segue o padrão em camadas:
+
+- **Controller** → responsável por lidar com requisições e respostas HTTP
+- **Service** → contém as regras de negócio
+- **Repository** → responsável pelo acesso ao banco de dados
+- **Model** → define o schema da aplicação
+
+```
+src/
+  config/
+  controllers/
+  database/
+  errors/
+  middlewares/
+  models/
+  repositories/
+  routes/
+  services/
+  app.js
+  server.js
 ```
 
-## ▶️ Executar o projeto
+---
+
+## ⚙️ Configuração do ambiente
+
+Crie um arquivo `.env` na raiz do projeto com as seguintes variáveis:
+
+```
+PORT=3000
+MONGO_URI=sua_string_do_mongodb
+NODE_ENV=development
+```
+
+---
+
+## ▶️ Como executar o projeto
 
 ```bash
+# Clonar o repositório
+git clone <url-do-repositorio>
+
+# Acessar a pasta
+cd nome-do-projeto
+
+# Instalar dependências
+npm install
+
+# Rodar o projeto
 npm run dev
 ```
 
-ou
+---
 
-```bash
-node server.js
-```
+## 📌 Rotas da API
 
-## 🔗 Rotas principais
+### 🔹 Criar tarefa
 
-### Listar tarefas
-
-GET /api/tarefas
-
-### Buscar tarefa por ID
-
-GET /api/tarefas/:id
-
-### Criar tarefa
-
-POST /api/tarefas
+**POST** `/api/tasks`
 
 Body:
 
 ```json
 {
-  "nome": "Minha tarefa"
+  "title": "Estudar Node.js",
+  "description": "Aprender MongoDB",
+  "dueDate": "2026-03-30"
 }
 ```
 
-### Atualizar tarefa
+---
 
-PUT /api/tarefas/:id
+### 🔹 Listar tarefas
 
-### Deletar tarefa
+**GET** `/api/tasks`
 
-DELETE /api/tarefas/:id
+---
 
-## ⚙️ Configuração
+### 🔹 Buscar tarefa por ID
 
-Crie um arquivo `.env` na raiz do projeto:
+**GET** `/api/tasks/:id`
 
-```env
-PORT=3000
+---
+
+### 🔹 Atualizar tarefa
+
+**PUT** `/api/tasks/:id`
+
+Body:
+
+```json
+{
+  "completed": true
+}
 ```
 
-## 💾 Banco de dados
+---
 
-- SQLite
+### 🔹 Deletar tarefa
 
-## 📌 Observações
+**DELETE** `/api/tasks/:id`
 
-- A API possui validação de dados
-- Projeto com fins de estudo
+---
+
+## 📊 Exemplo de resposta
+
+```json
+{
+  "sucesso": true,
+  "dados": {
+    "_id": "123",
+    "title": "Estudar Node.js",
+    "description": "MongoDB + Mongoose",
+    "completed": false,
+    "dueDate": "2026-03-30T00:00:00.000Z",
+    "createdAt": "2026-03-27T12:00:00.000Z",
+    "updatedAt": "2026-03-27T12:00:00.000Z"
+  }
+}
+```
+
+---
+
+## ⚠️ Tratamento de erros
+
+A aplicação utiliza uma classe customizada `AppError` para padronizar erros.
+
+Exemplo:
+
+```json
+{
+  "sucesso": false,
+  "erro": "Tarefa com id 123 não encontrada"
+}
+```
+
+---
+
+## 🧩 Funcionalidades
+
+- Criar tarefas
+- Listar tarefas
+- Buscar tarefa por ID
+- Atualizar tarefa
+- Deletar tarefa
+- Ordenação por data
+- Tratamento de erros padronizado
+
+---
+
+## 🔐 Boas práticas aplicadas
+
+- Separação de responsabilidades (Controller, Service, Repository)
+- Uso de variáveis de ambiente (.env)
+- Tratamento centralizado de erros
+- Código modular e escalável
+
+---
+
+## 🚧 Próximas melhorias
+
+- Validação de dados com Zod
+- Paginação de tarefas
+- Filtros (status, data)
+- Testes automatizados
+
+---
+
+## 📄 Licença
+
+Este projeto está sob a licença MIT.
