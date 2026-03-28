@@ -1,24 +1,51 @@
-# 🚀 API de Gerenciamento de Tarefas
+# 🚀 API de Tarefas (Node.js + MongoDB)
 
-API RESTful desenvolvida com Node.js para gerenciamento de tarefas com autenticação de usuários, controle de acesso e funcionalidades avançadas como paginação, filtros e ordenação.
+Uma API RESTful completa para gerenciamento de tarefas, com autenticação baseada em JWT, refresh token com rotação, validação de dados e arquitetura em camadas.
 
 ---
 
 ## 📌 Funcionalidades
 
-- 🔐 Autenticação com JWT
-- 👤 Cadastro e login de usuários
-- 📝 CRUD completo de tarefas
-- 🔒 Cada usuário acessa apenas suas próprias tarefas
-- 📊 Paginação de resultados
-- 🔍 Filtros por status e título
-- ↕️ Ordenação dinâmica
-- ✅ Validação de dados
-- ⚠️ Tratamento global de erros
+### 🔐 Autenticação
+
+- Registro de usuário
+- Login com geração de tokens
+- Refresh token com rotação
+- Logout com invalidação de sessão
+- Autenticação via Bearer Token
+
+### 📋 Tarefas
+
+- Criar tarefa
+- Listar tarefas (com paginação, filtros e ordenação)
+- Buscar tarefa por ID
+- Atualizar tarefa
+- Deletar tarefa
+- Tarefas vinculadas ao usuário autenticado
+
+### 🛡️ Segurança
+
+- Senhas criptografadas com bcrypt
+- JWT com expiração
+- Refresh tokens armazenados no banco
+- Rotação de refresh token
+- Logout real (revogação de sessão)
+- Validação de dados com Zod
 
 ---
 
-## 🛠️ Tecnologias utilizadas
+### 📌 Camadas
+
+- **Routes** → define endpoints
+- **Middlewares** → validação, autenticação
+- **Controllers** → entrada/saída HTTP
+- **Services** → regras de negócio
+- **Repositories** → acesso ao banco
+- **Models** → schemas do MongoDB
+
+---
+
+## ⚙️ Tecnologias
 
 - Node.js
 - Express
@@ -31,36 +58,33 @@ API RESTful desenvolvida com Node.js para gerenciamento de tarefas com autentica
 
 ---
 
-## ⚙️ Configuração do ambiente
+## 🔧 Instalação
 
-### 1. Clone o projeto
-
-```
+```bash
 git clone https://github.com/SamuelPaimAraujoCezar/API-Tarefas.git
-```
-
-### 2. Instale as dependências
-
-```
+cd pasta-do-projeto
 npm install
-```
-
-### 3. Configure o arquivo `.env`
-
-Crie um arquivo `.env` na raiz do projeto:
-
-```
-PORT=3000
-MONGO_URI=sua_string_do_mongodb
-NODE_ENV=development
-JWT_SECRET=seu_segredo_super_secreto
 ```
 
 ---
 
-## ▶️ Como executar o projeto
+## ⚙️ Variáveis de Ambiente
+
+Crie um arquivo `.env` na raiz:
 
 ```
+PORT=3000
+MONGO_URI=sua_string_do_mongodb
+JWT_SECRET=seu_secret
+JWT_REFRESH_SECRET=seu_refresh_secret
+NODE_ENV=development
+```
+
+---
+
+## ▶️ Rodando o projeto
+
+```bash
 npm run dev
 ```
 
@@ -68,37 +92,23 @@ npm run dev
 
 ## 🔐 Autenticação
 
-A API utiliza autenticação via JWT.
-
-### Header obrigatório:
+### 📌 Headers protegidos
 
 ```
-Authorization: Bearer SEU_TOKEN
+Authorization: Bearer SEU_ACCESS_TOKEN
 ```
 
 ---
 
-## 📌 Endpoints
+## 📡 Endpoints
 
-### 🔹 Autenticação
+### 🔐 Auth
 
-#### Cadastro
+#### Register
 
 ```
 POST /api/auth/register
 ```
-
-**Body:**
-
-```json
-{
-  "name": "João",
-  "email": "joao@email.com",
-  "password": "123456"
-}
-```
-
----
 
 #### Login
 
@@ -106,22 +116,21 @@ POST /api/auth/register
 POST /api/auth/login
 ```
 
-**Body:**
+#### Refresh Token
 
-```json
-{
-  "email": "joao@email.com",
-  "password": "123456"
-}
+```
+POST /api/auth/refresh
+```
+
+#### Logout
+
+```
+POST /api/auth/logout
 ```
 
 ---
 
-### 🔹 Tarefas
-
-> 🔒 Todas as rotas abaixo requerem autenticação
-
----
+### 📋 Tasks
 
 #### Criar tarefa
 
@@ -129,91 +138,66 @@ POST /api/auth/login
 POST /api/tasks
 ```
 
-**Body:**
-
-```json
-{
-  "title": "Estudar Node.js",
-  "description": "Aprender backend",
-  "dueDate": "2026-03-30"
-}
-```
-
----
-
 #### Listar tarefas
 
 ```
-GET /api/tasks
+GET /api/tasks?page=1&limit=10
 ```
 
-### Query params:
-
-- `page` (default: 1)
-- `limit` (default: 10)
-- `completed` (true | false)
-- `title` (busca por texto)
-- `sort` (dueDate | createdAt | title)
-- `order` (asc | desc)
-
-**Exemplo:**
-
-```
-GET /api/tasks?page=1&limit=5&completed=true&sort=createdAt&order=desc
-```
-
----
-
-#### Buscar tarefa por ID
+#### Buscar por ID
 
 ```
 GET /api/tasks/:id
 ```
 
----
-
-#### Atualizar tarefa
+#### Atualizar
 
 ```
 PUT /api/tasks/:id
 ```
 
----
-
-#### Deletar tarefa
+#### Deletar
 
 ```
 DELETE /api/tasks/:id
 ```
 
-**Resposta:**
+---
 
-```
-204 No Content
-```
+## 🔄 Fluxo de Autenticação
+
+1. Usuário faz login ou register
+2. Recebe:
+   - accessToken (curta duração)
+   - refreshToken (longa duração)
+
+3. Usa accessToken nas requisições
+4. Quando expira:
+   - chama `/refresh`
+   - recebe novo accessToken e refreshToken
+
+5. No logout:
+   - refresh token é removido do banco
 
 ---
 
-## ⚠️ Tratamento de erros
+## 🧪 Validação
 
-A API retorna erros no seguinte formato:
+Validação feita com Zod via middleware:
 
-```json
-{
-  "sucesso": false,
-  "erro": "Mensagem de erro"
-}
-```
+- body
+- params
+- query
 
-Ou para validações:
+Erros retornam:
 
 ```json
 {
   "sucesso": false,
   "erros": [
     {
-      "campo": "title",
-      "mensagem": "Campo obrigatório"
+      "campo": "email",
+      "mensagem": "Email inválido"
     }
   ]
 }
@@ -221,18 +205,53 @@ Ou para validações:
 
 ---
 
-## 🔒 Segurança
+## 📊 Paginação, Filtros e Ordenação
 
-- Senhas criptografadas com bcrypt
-- Autenticação via JWT
-- Proteção de rotas com middleware
-- Isolamento de dados por usuário
+### Paginação
+
+```
+?page=1&limit=10
+```
+
+### Filtros
+
+```
+?completed=true
+```
+
+### Ordenação
+
+```
+?sort=dueDate,-createdAt
+```
+
+---
+
+## 🔐 Segurança implementada
+
+- Tokens com expiração
+- Refresh token com rotação
+- Armazenamento de refresh token no banco
+- Logout com invalidação
+- Validação de entrada
+- Mensagens genéricas no login
+
+---
+
+## 🧠 Boas práticas aplicadas
+
+- Arquitetura em camadas
+- Separação de responsabilidades
+- Controllers enxutos
+- Repositories para acesso ao banco
+- Middlewares reutilizáveis
+- Validação centralizada
+- Tratamento global de erros
 
 ---
 
 ## 🚀 Melhorias futuras
 
-- Refresh Token
 - Testes automatizados
 - Documentação com Swagger
 - Deploy em nuvem

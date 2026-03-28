@@ -1,31 +1,32 @@
-const User = require("../models/User");
-const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const bcrypt = require("bcryptjs");
 const AppError = require("../errors/AppError");
 
-const { JWT_SECRET } = require("../config/env");
+const { JWT_SECRET, JWT_REFRESH_SECRET } = require("../config/env");
+
+const userRepository = require("../repositories/userRepository");
+const refreshTokenRepository = require("../repositories/refreshTokenRepository");
 
 class AuthService {
-  async register({ name, email, password }) {
-    const userExists = await User.findOne({ email });
+  async register(data) {
+    const userExists = await userRepository.findByEmail(data.email);
 
     if (userExists) {
       throw new AppError("Usuário já existe", 400);
     }
 
-    const hashedPassword = await bcrypt.hash(password, 8);
+    const hashedPassword = await bcrypt.hash(data.password, 8);
 
-    const user = await User.create({
-      name,
-      email,
+    const user = await userRepository.create({
+      ...data,
       password: hashedPassword,
     });
 
-    return user;
+    return this._generateTokens(user);
   }
 
   async login({ email, password }) {
-    const user = await User.findOne({ email });
+    const user = await userRepository.findByEmail(email);
 
     if (!user) {
       throw new AppError("Credenciais inválidas", 401);
@@ -37,11 +38,58 @@ class AuthService {
       throw new AppError("Credenciais inválidas", 401);
     }
 
-    const token = jwt.sign({ id: user._id }, JWT_SECRET, {
-      expiresIn: "1d",
+    return this._generateTokens(user);
+  }
+
+  async refresh(refreshToken) {
+    const stored = await refreshTokenRepository.findByToken(refreshToken);
+
+    if (!stored) {
+      throw new AppError("Refresh token inválido", 401);
+    }
+
+    try {
+      const decoded = jwt.verify(refreshToken, JWT_REFRESH_SECRET);
+
+      await refreshTokenRepository.deleteByToken(refreshToken);
+
+      const tokens = this._generateTokens({ _id: decoded.id });
+
+      return tokens;
+    } catch {
+      throw new AppError("Refresh token inválido", 401);
+    }
+  }
+
+  async logout(refreshToken) {
+    await refreshTokenRepository.deleteByToken(refreshToken);
+  }
+
+  async _generateTokens(user) {
+    const accessToken = jwt.sign({ id: user._id }, JWT_SECRET, {
+      expiresIn: "15m",
     });
 
-    return { user, token };
+    const refreshToken = jwt.sign({ id: user._id }, JWT_REFRESH_SECRET, {
+      expiresIn: "7d",
+    });
+
+    await refreshTokenRepository.create({
+      token: refreshToken,
+      userId: user._id,
+    });
+
+    return {
+      user: user.name
+        ? {
+            id: user._id,
+            name: user.name,
+            email: user.email,
+          }
+        : undefined,
+      accessToken,
+      refreshToken,
+    };
   }
 }
 

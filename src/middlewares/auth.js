@@ -17,7 +17,11 @@ function authMiddleware(req, res, next) {
     req.userId = decoded.id;
 
     return next();
-  } catch {
+  } catch (err) {
+    if (err.name === "TokenExpiredError") {
+      throw new AppError("Token expirado", 401);
+    }
+
     throw new AppError("Token inválido", 401);
   }
 }
