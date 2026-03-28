@@ -1,186 +1,242 @@
-# 📝 API de Tarefas
+# 🚀 API de Gerenciamento de Tarefas
 
-API RESTful para gerenciamento de tarefas, desenvolvida com Node.js, Express e MongoDB, seguindo boas práticas de arquitetura em camadas.
+API RESTful desenvolvida com Node.js para gerenciamento de tarefas com autenticação de usuários, controle de acesso e funcionalidades avançadas como paginação, filtros e ordenação.
 
 ---
 
-## 🚀 Tecnologias utilizadas
+## 📌 Funcionalidades
+
+- 🔐 Autenticação com JWT
+- 👤 Cadastro e login de usuários
+- 📝 CRUD completo de tarefas
+- 🔒 Cada usuário acessa apenas suas próprias tarefas
+- 📊 Paginação de resultados
+- 🔍 Filtros por status e título
+- ↕️ Ordenação dinâmica
+- ✅ Validação de dados
+- ⚠️ Tratamento global de erros
+
+---
+
+## 🛠️ Tecnologias utilizadas
 
 - Node.js
 - Express
 - MongoDB
 - Mongoose
-- Dotenv
-
----
-
-## 🧱 Arquitetura
-
-O projeto segue o padrão em camadas:
-
-- **Controller** → responsável por lidar com requisições e respostas HTTP
-- **Service** → contém as regras de negócio
-- **Repository** → responsável pelo acesso ao banco de dados
-- **Model** → define o schema da aplicação
-
-```
-src/
-  config/
-  controllers/
-  database/
-  errors/
-  middlewares/
-  models/
-  repositories/
-  routes/
-  services/
-  app.js
-  server.js
-```
+- JWT (jsonwebtoken)
+- bcryptjs
+- Zod
+- dotenv
 
 ---
 
 ## ⚙️ Configuração do ambiente
 
-Crie um arquivo `.env` na raiz do projeto com as seguintes variáveis:
+### 1. Clone o projeto
+
+```
+git clone https://github.com/SamuelPaimAraujoCezar/API-Tarefas.git
+```
+
+### 2. Instale as dependências
+
+```
+npm install
+```
+
+### 3. Configure o arquivo `.env`
+
+Crie um arquivo `.env` na raiz do projeto:
 
 ```
 PORT=3000
 MONGO_URI=sua_string_do_mongodb
 NODE_ENV=development
+JWT_SECRET=seu_segredo_super_secreto
 ```
 
 ---
 
 ## ▶️ Como executar o projeto
 
-```bash
-# Clonar o repositório
-git clone <url-do-repositorio>
-
-# Acessar a pasta
-cd nome-do-projeto
-
-# Instalar dependências
-npm install
-
-# Rodar o projeto
+```
 npm run dev
 ```
 
 ---
 
-## 📌 Rotas da API
+## 🔐 Autenticação
 
-### 🔹 Criar tarefa
+A API utiliza autenticação via JWT.
 
-**POST** `/api/tasks`
+### Header obrigatório:
 
-Body:
+```
+Authorization: Bearer SEU_TOKEN
+```
+
+---
+
+## 📌 Endpoints
+
+### 🔹 Autenticação
+
+#### Cadastro
+
+```
+POST /api/auth/register
+```
+
+**Body:**
+
+```json
+{
+  "name": "João",
+  "email": "joao@email.com",
+  "password": "123456"
+}
+```
+
+---
+
+#### Login
+
+```
+POST /api/auth/login
+```
+
+**Body:**
+
+```json
+{
+  "email": "joao@email.com",
+  "password": "123456"
+}
+```
+
+---
+
+### 🔹 Tarefas
+
+> 🔒 Todas as rotas abaixo requerem autenticação
+
+---
+
+#### Criar tarefa
+
+```
+POST /api/tasks
+```
+
+**Body:**
 
 ```json
 {
   "title": "Estudar Node.js",
-  "description": "Aprender MongoDB",
+  "description": "Aprender backend",
   "dueDate": "2026-03-30"
 }
 ```
 
 ---
 
-### 🔹 Listar tarefas
+#### Listar tarefas
 
-**GET** `/api/tasks`
+```
+GET /api/tasks
+```
 
----
+### Query params:
 
-### 🔹 Buscar tarefa por ID
+- `page` (default: 1)
+- `limit` (default: 10)
+- `completed` (true | false)
+- `title` (busca por texto)
+- `sort` (dueDate | createdAt | title)
+- `order` (asc | desc)
 
-**GET** `/api/tasks/:id`
+**Exemplo:**
 
----
-
-### 🔹 Atualizar tarefa
-
-**PUT** `/api/tasks/:id`
-
-Body:
-
-```json
-{
-  "completed": true
-}
+```
+GET /api/tasks?page=1&limit=5&completed=true&sort=createdAt&order=desc
 ```
 
 ---
 
-### 🔹 Deletar tarefa
+#### Buscar tarefa por ID
 
-**DELETE** `/api/tasks/:id`
+```
+GET /api/tasks/:id
+```
 
 ---
 
-## 📊 Exemplo de resposta
+#### Atualizar tarefa
 
-```json
-{
-  "sucesso": true,
-  "dados": {
-    "_id": "123",
-    "title": "Estudar Node.js",
-    "description": "MongoDB + Mongoose",
-    "completed": false,
-    "dueDate": "2026-03-30T00:00:00.000Z",
-    "createdAt": "2026-03-27T12:00:00.000Z",
-    "updatedAt": "2026-03-27T12:00:00.000Z"
-  }
-}
+```
+PUT /api/tasks/:id
+```
+
+---
+
+#### Deletar tarefa
+
+```
+DELETE /api/tasks/:id
+```
+
+**Resposta:**
+
+```
+204 No Content
 ```
 
 ---
 
 ## ⚠️ Tratamento de erros
 
-A aplicação utiliza uma classe customizada `AppError` para padronizar erros.
-
-Exemplo:
+A API retorna erros no seguinte formato:
 
 ```json
 {
   "sucesso": false,
-  "erro": "Tarefa com id 123 não encontrada"
+  "erro": "Mensagem de erro"
+}
+```
+
+Ou para validações:
+
+```json
+{
+  "sucesso": false,
+  "erros": [
+    {
+      "campo": "title",
+      "mensagem": "Campo obrigatório"
+    }
+  ]
 }
 ```
 
 ---
 
-## 🧩 Funcionalidades
+## 🔒 Segurança
 
-- Criar tarefas
-- Listar tarefas
-- Buscar tarefa por ID
-- Atualizar tarefa
-- Deletar tarefa
-- Ordenação por data
-- Tratamento de erros padronizado
+- Senhas criptografadas com bcrypt
+- Autenticação via JWT
+- Proteção de rotas com middleware
+- Isolamento de dados por usuário
 
 ---
 
-## 🔐 Boas práticas aplicadas
+## 🚀 Melhorias futuras
 
-- Separação de responsabilidades (Controller, Service, Repository)
-- Uso de variáveis de ambiente (.env)
-- Tratamento centralizado de erros
-- Código modular e escalável
-
----
-
-## 🚧 Próximas melhorias
-
-- Validação de dados com Zod
-- Paginação de tarefas
-- Filtros (status, data)
+- Refresh Token
 - Testes automatizados
+- Documentação com Swagger
+- Deploy em nuvem
+- Sistema de permissões (roles)
 
 ---
 
