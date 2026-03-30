@@ -1,88 +1,153 @@
-# 🚀 API de Tarefas (Node.js + MongoDB)
+# 📌 API de Tarefas
 
-Uma API RESTful completa para gerenciamento de tarefas, com autenticação baseada em JWT, refresh token com rotação, validação de dados e arquitetura em camadas.
-
----
-
-## 📌 Funcionalidades
-
-### 🔐 Autenticação
-
-- Registro de usuário
-- Login com geração de tokens
-- Refresh token com rotação
-- Logout com invalidação de sessão
-- Autenticação via Bearer Token
-
-### 📋 Tarefas
-
-- Criar tarefa
-- Listar tarefas (com paginação, filtros e ordenação)
-- Buscar tarefa por ID
-- Atualizar tarefa
-- Deletar tarefa
-- Tarefas vinculadas ao usuário autenticado
-
-### 🛡️ Segurança
-
-- Senhas criptografadas com bcrypt
-- JWT com expiração
-- Refresh tokens armazenados no banco
-- Rotação de refresh token
-- Logout real (revogação de sessão)
-- Validação de dados com Zod
+API RESTful para gerenciamento de tarefas com autenticação JWT, controle de acesso por usuário e testes automatizados.
 
 ---
 
-### 📌 Camadas
-
-- **Routes** → define endpoints
-- **Middlewares** → validação, autenticação
-- **Controllers** → entrada/saída HTTP
-- **Services** → regras de negócio
-- **Repositories** → acesso ao banco
-- **Models** → schemas do MongoDB
-
----
-
-## ⚙️ Tecnologias
+## 🚀 Tecnologias utilizadas
 
 - Node.js
 - Express
-- MongoDB
-- Mongoose
-- JWT (jsonwebtoken)
-- bcryptjs
-- Zod
-- dotenv
+- MongoDB + Mongoose
+- JWT (JSON Web Token)
+- Zod (validação)
+- Jest + Supertest (testes)
+- bcryptjs (hash de senha)
 
 ---
 
-## 🔧 Instalação
+## 🔐 Autenticação
+
+A API utiliza **JWT** para autenticação.
+
+### Fluxo:
+
+1. Registro → gera tokens
+2. Login → gera tokens
+3. Enviar token no header:
+
+```http
+Authorization: Bearer <accessToken>
+```
+
+---
+
+## 📌 Endpoints
+
+### 🔑 Auth
+
+#### POST `/api/auth/register`
+
+Cria um novo usuário.
+
+#### POST `/api/auth/login`
+
+Realiza login.
+
+#### POST `/api/auth/refresh`
+
+Gera novo access token.
+
+#### POST `/api/auth/logout`
+
+Invalida refresh token.
+
+---
+
+### ✅ Tasks (protegidos por autenticação)
+
+#### GET `/api/tasks`
+
+Lista tarefas do usuário autenticado (com paginação e filtros)
+
+#### GET `/api/tasks/:id`
+
+Busca tarefa por ID (apenas do próprio usuário)
+
+#### POST `/api/tasks`
+
+Cria nova tarefa
+
+#### PUT `/api/tasks/:id`
+
+Atualiza tarefa
+
+#### DELETE `/api/tasks/:id`
+
+Remove tarefa
+
+---
+
+## 🔍 Filtros e Query Params
+
+Exemplo:
 
 ```bash
-git clone https://github.com/SamuelPaimAraujoCezar/API-Tarefas.git
-cd pasta-do-projeto
+GET /api/tasks?page=1&limit=10&completed=true&title=estudo&sort=dueDate&order=asc
+```
+
+| Parâmetro | Descrição                 |
+| --------- | ------------------------- |
+| page      | Página                    |
+| limit     | Quantidade por página     |
+| completed | true / false              |
+| title     | Busca por título          |
+| sort      | dueDate, createdAt, title |
+| order     | asc / desc                |
+
+---
+
+## 🧪 Testes automatizados
+
+O projeto possui testes de integração cobrindo:
+
+- Autenticação
+- Autorização (User A vs User B)
+- Segurança (injeção de userId)
+- Middleware (auth)
+- CRUD de tarefas
+
+### ▶️ Rodar testes
+
+```bash
+npm test
+```
+
+---
+
+## 🛡️ Segurança
+
+- Senhas com hash (bcrypt)
+- Autenticação via JWT
+- Proteção por usuário (multi-tenant)
+- Validação de dados com Zod
+- Tokens expirados tratados
+- Refresh token armazenado
+
+---
+
+## ⚙️ Configuração
+
+Crie um arquivo `.env`:
+
+```env
+PORT=3000
+MONGO_URI=your_mongo_uri
+JWT_SECRET=your_secret
+JWT_REFRESH_SECRET=your_refresh_secret
+```
+
+---
+
+## 📦 Instalação
+
+```bash
 npm install
 ```
 
 ---
 
-## ⚙️ Variáveis de Ambiente
-
-Crie um arquivo `.env` na raiz:
-
-```
-PORT=3000
-MONGO_URI=sua_string_do_mongodb
-JWT_SECRET=seu_secret
-JWT_REFRESH_SECRET=seu_refresh_secret
-NODE_ENV=development
-```
-
----
-
-## ▶️ Rodando o projeto
+## ▶️ Rodar aplicação
 
 ```bash
 npm run dev
@@ -90,172 +155,22 @@ npm run dev
 
 ---
 
-## 🔐 Autenticação
+## 🧹 Boas práticas aplicadas
 
-### 📌 Headers protegidos
-
-```
-Authorization: Bearer SEU_ACCESS_TOKEN
-```
-
----
-
-## 📡 Endpoints
-
-### 🔐 Auth
-
-#### Register
-
-```
-POST /api/auth/register
-```
-
-#### Login
-
-```
-POST /api/auth/login
-```
-
-#### Refresh Token
-
-```
-POST /api/auth/refresh
-```
-
-#### Logout
-
-```
-POST /api/auth/logout
-```
-
----
-
-### 📋 Tasks
-
-#### Criar tarefa
-
-```
-POST /api/tasks
-```
-
-#### Listar tarefas
-
-```
-GET /api/tasks?page=1&limit=10
-```
-
-#### Buscar por ID
-
-```
-GET /api/tasks/:id
-```
-
-#### Atualizar
-
-```
-PUT /api/tasks/:id
-```
-
-#### Deletar
-
-```
-DELETE /api/tasks/:id
-```
-
----
-
-## 🔄 Fluxo de Autenticação
-
-1. Usuário faz login ou register
-2. Recebe:
-   - accessToken (curta duração)
-   - refreshToken (longa duração)
-
-3. Usa accessToken nas requisições
-4. Quando expira:
-   - chama `/refresh`
-   - recebe novo accessToken e refreshToken
-
-5. No logout:
-   - refresh token é removido do banco
-
----
-
-## 🧪 Validação
-
-Validação feita com Zod via middleware:
-
-- body
-- params
-- query
-
-Erros retornam:
-
-```json
-{
-  "sucesso": false,
-  "erros": [
-    {
-      "campo": "email",
-      "mensagem": "Email inválido"
-    }
-  ]
-}
-```
-
----
-
-## 📊 Paginação, Filtros e Ordenação
-
-### Paginação
-
-```
-?page=1&limit=10
-```
-
-### Filtros
-
-```
-?completed=true
-```
-
-### Ordenação
-
-```
-?sort=dueDate,-createdAt
-```
-
----
-
-## 🔐 Segurança implementada
-
-- Tokens com expiração
-- Refresh token com rotação
-- Armazenamento de refresh token no banco
-- Logout com invalidação
-- Validação de entrada
-- Mensagens genéricas no login
-
----
-
-## 🧠 Boas práticas aplicadas
-
-- Arquitetura em camadas
+- Arquitetura em camadas (Controller → Service → Repository)
 - Separação de responsabilidades
-- Controllers enxutos
-- Repositories para acesso ao banco
-- Middlewares reutilizáveis
 - Validação centralizada
+- Testes isolados com banco limpo
+- Uso de factories para testes
 - Tratamento global de erros
 
 ---
 
-## 🚀 Melhorias futuras
+## 🚀 Próximos passos (melhorias)
 
-- Testes automatizados
+- Roles e permissões (admin/user)
 - Documentação com Swagger
 - Deploy em nuvem
-- Sistema de permissões (roles)
 
 ---
 

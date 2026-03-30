@@ -13,7 +13,7 @@ class TaskService {
     const filters = { userId };
 
     if (query.completed !== undefined) {
-      filters.completed = query.completed === "true";
+      filters.completed = query.completed;
     }
 
     if (query.title) {

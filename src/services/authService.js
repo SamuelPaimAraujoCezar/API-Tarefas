@@ -1,5 +1,6 @@
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
+const crypto = require("crypto");
 const AppError = require("../errors/AppError");
 
 const { JWT_SECRET, JWT_REFRESH_SECRET } = require("../config/env");
@@ -12,7 +13,7 @@ class AuthService {
     const userExists = await userRepository.findByEmail(data.email);
 
     if (userExists) {
-      throw new AppError("Usuário já existe", 400);
+      throw new AppError("Usuário já existe", 409);
     }
 
     const hashedPassword = await bcrypt.hash(data.password, 8);
@@ -70,9 +71,11 @@ class AuthService {
       expiresIn: "15m",
     });
 
-    const refreshToken = jwt.sign({ id: user._id }, JWT_REFRESH_SECRET, {
-      expiresIn: "7d",
-    });
+    const refreshToken = jwt.sign(
+      { id: user._id, jti: crypto.randomUUID() },
+      JWT_REFRESH_SECRET,
+      { expiresIn: "7d" },
+    );
 
     await refreshTokenRepository.create({
       token: refreshToken,

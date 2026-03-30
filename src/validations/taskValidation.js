@@ -12,11 +12,9 @@ const querySchema = z.object({
   limit: z.coerce.number().min(1).max(100).default(10),
 
   completed: z
-    .string()
-    .optional()
-    .refine((val) => val === "true" || val === "false", {
-      message: "completed deve ser true ou false",
-    }),
+    .enum(["true", "false"])
+    .transform((val) => val === "true")
+    .optional(),
 
   title: z.string().optional(),
 
