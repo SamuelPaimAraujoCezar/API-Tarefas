@@ -36,7 +36,7 @@ describe("Task Authorization (User A vs User B)", () => {
   it("User A não deve acessar task do User B", async () => {
     const response = await getTaskById(userAToken, userBTaskId);
 
-    expect(response.status).toBe(404);
+    expect(response.status).toBe(403);
   });
 
   it("User A não deve atualizar task do User B", async () => {
@@ -44,13 +44,13 @@ describe("Task Authorization (User A vs User B)", () => {
       title: "Hack attempt",
     });
 
-    expect(response.status).toBe(404);
+    expect(response.status).toBe(403);
   });
 
   it("User A não deve deletar task do User B", async () => {
     const response = await deleteTask(userAToken, userBTaskId);
 
-    expect(response.status).toBe(404);
+    expect(response.status).toBe(403);
   });
 
   it("User A deve ver apenas suas tasks", async () => {

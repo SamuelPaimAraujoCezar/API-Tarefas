@@ -8,31 +8,35 @@ class TaskRepository {
   async findAll({ page, limit, filters, sort }) {
     const skip = (page - 1) * limit;
 
-    const tasks = await Task.find(filters).sort(sort).skip(skip).limit(limit);
-
-    const total = await Task.countDocuments(filters);
+    const [tasks, total] = await Promise.all([
+      Task.find(filters).sort(sort).skip(skip).limit(limit),
+      Task.countDocuments(filters),
+    ]);
 
     return {
-      tasks,
-      total,
-      page,
-      totalPages: Math.ceil(total / limit),
+      dados: tasks,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
     };
   }
 
-  async findById(id, userId) {
-    return await Task.findOne({ _id: id, userId });
+  async findById(id) {
+    return await Task.findById(id);
   }
 
-  async update(id, data, userId) {
-    return await Task.findOneAndUpdate({ _id: id, userId }, data, {
+  async update(id, data) {
+    return await Task.findByIdAndUpdate(id, data, {
       new: true,
       runValidators: true,
     });
   }
 
-  async delete(id, userId) {
-    return await Task.findOneAndDelete({ _id: id, userId });
+  async delete(id) {
+    return await Task.findByIdAndDelete(id);
   }
 }
 

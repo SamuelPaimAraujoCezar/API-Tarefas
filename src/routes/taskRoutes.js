@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 
-const authMiddleware = require("../middlewares/auth");
+const { authMiddleware } = require("../middlewares/auth");
 const validate = require("../middlewares/validate");
 const {
   idSchema,

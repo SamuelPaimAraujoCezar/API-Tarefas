@@ -32,6 +32,29 @@ Authorization: Bearer <accessToken>
 
 ---
 
+## 🔑 Controle de Acesso (Roles)
+
+A API implementa um sistema de autorização baseado em **roles + ownership**:
+
+### Roles disponíveis:
+
+- `USER`
+- `ADMIN`
+
+### Regras:
+
+#### 👤 USER
+
+- Pode acessar apenas suas próprias tarefas
+- Pode criar, listar, atualizar e deletar **somente tarefas que criou**
+
+#### 👑 ADMIN
+
+- Pode acessar **todas as tarefas**
+- Pode realizar qualquer operação (CRUD) em qualquer tarefa
+
+---
+
 ## 📌 Endpoints
 
 ### 🔑 Auth
@@ -58,11 +81,11 @@ Invalida refresh token.
 
 #### GET `/api/tasks`
 
-Lista tarefas do usuário autenticado (com paginação e filtros)
+Lista tarefas (USER: apenas suas | ADMIN: todas)
 
 #### GET `/api/tasks/:id`
 
-Busca tarefa por ID (apenas do próprio usuário)
+Busca tarefa por ID (USER: apenas suas | ADMIN: qualquer)
 
 #### POST `/api/tasks`
 
@@ -70,11 +93,11 @@ Cria nova tarefa
 
 #### PUT `/api/tasks/:id`
 
-Atualiza tarefa
+Atualiza tarefa (USER: apenas suas | ADMIN: qualquer)
 
 #### DELETE `/api/tasks/:id`
 
-Remove tarefa
+Remove tarefa (USER: apenas suas | ADMIN: qualquer)
 
 ---
 
@@ -99,13 +122,29 @@ GET /api/tasks?page=1&limit=10&completed=true&title=estudo&sort=dueDate&order=as
 
 ## 🧪 Testes automatizados
 
-O projeto possui testes de integração cobrindo:
+O projeto possui testes de integração (E2E) cobrindo:
 
 - Autenticação
-- Autorização (User A vs User B)
-- Segurança (injeção de userId)
-- Middleware (auth)
+- Refresh token (rotação e invalidação)
+- Autorização baseada em roles (USER vs ADMIN)
+- Middleware de autenticação (JWT)
 - CRUD de tarefas
+
+### 🧪 Cenários de autorização testados
+
+#### USER
+
+- ✔️ Acessa próprias tarefas
+- ❌ Não acessa tarefas de outros usuários
+
+#### ADMIN
+
+- ✔️ Acessa tarefas de qualquer usuário
+- ✔️ Atualiza tarefas de qualquer usuário
+- ✔️ Remove tarefas de qualquer usuário
+- ✔️ Lista todas as tarefas
+
+---
 
 ### ▶️ Rodar testes
 
@@ -119,10 +158,11 @@ npm test
 
 - Senhas com hash (bcrypt)
 - Autenticação via JWT
-- Proteção por usuário (multi-tenant)
+- Controle de acesso por roles (RBAC)
+- Proteção por ownership (multi-tenant)
 - Validação de dados com Zod
 - Tokens expirados tratados
-- Refresh token armazenado
+- Refresh token com rotação e persistência
 
 ---
 
@@ -160,15 +200,15 @@ npm run dev
 - Arquitetura em camadas (Controller → Service → Repository)
 - Separação de responsabilidades
 - Validação centralizada
-- Testes isolados com banco limpo
-- Uso de factories para testes
+- Testes E2E cobrindo fluxo completo
+- Isolamento de regras de autorização
 - Tratamento global de erros
+- Refresh token com rotação segura
 
 ---
 
 ## 🚀 Próximos passos (melhorias)
 
-- Roles e permissões (admin/user)
 - Documentação com Swagger
 - Deploy em nuvem
 

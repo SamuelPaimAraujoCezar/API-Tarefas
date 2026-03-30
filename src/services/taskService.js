@@ -1,16 +1,22 @@
 const taskRepository = require("../repositories/taskRepository");
+const TaskPermission = require("../permissions/TaskPermission");
 const AppError = require("../errors/AppError");
 
 class TaskService {
-  async createTask(data) {
-    return await taskRepository.create(data);
+  async createTask(data, user) {
+    return await taskRepository.create({
+      ...data,
+      userId: user.id,
+    });
   }
 
-  async getAllTasks(query, userId) {
+  async getAllTasks(query, user) {
     const page = Number(query.page) || 1;
     const limit = Number(query.limit) || 10;
 
-    const filters = { userId };
+    const isAdmin = user.role === "ADMIN";
+
+    const filters = isAdmin ? {} : { userId: user.id };
 
     if (query.completed !== undefined) {
       filters.completed = query.completed;
@@ -33,32 +39,46 @@ class TaskService {
     });
   }
 
-  async getTaskById(id, userId) {
-    const task = await taskRepository.findById(id, userId);
+  async getTaskById(id, user) {
+    const task = await taskRepository.findById(id);
 
     if (!task) {
       throw new AppError(`Tarefa com id ${id} não encontrada`, 404);
+    }
+
+    if (!TaskPermission.canAccess(task, user)) {
+      throw new AppError("Acesso negado", 403);
     }
 
     return task;
   }
 
-  async updateTask(id, data, userId) {
-    const task = await taskRepository.update(id, data, userId);
+  async updateTask(id, data, user) {
+    const task = await taskRepository.findById(id);
 
     if (!task) {
       throw new AppError(`Tarefa com id ${id} não encontrada`, 404);
     }
 
-    return task;
+    if (!TaskPermission.canAccess(task, user)) {
+      throw new AppError("Acesso negado", 403);
+    }
+
+    return await taskRepository.update(id, data);
   }
 
-  async deleteTask(id, userId) {
-    const task = await taskRepository.delete(id, userId);
+  async deleteTask(id, user) {
+    const task = await taskRepository.findById(id);
 
     if (!task) {
       throw new AppError(`Tarefa com id ${id} não encontrada`, 404);
     }
+
+    if (!TaskPermission.canAccess(task, user)) {
+      throw new AppError("Acesso negado", 403);
+    }
+
+    await taskRepository.delete(id);
   }
 }
 

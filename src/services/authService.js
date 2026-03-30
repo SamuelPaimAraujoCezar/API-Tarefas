@@ -52,9 +52,11 @@ class AuthService {
     try {
       const decoded = jwt.verify(refreshToken, JWT_REFRESH_SECRET);
 
+      const user = await userRepository.findById(decoded.id);
+
       await refreshTokenRepository.deleteByToken(refreshToken);
 
-      const tokens = this._generateTokens({ _id: decoded.id });
+      const tokens = this._generateTokens(user);
 
       return tokens;
     } catch {
@@ -67,9 +69,16 @@ class AuthService {
   }
 
   async _generateTokens(user) {
-    const accessToken = jwt.sign({ id: user._id }, JWT_SECRET, {
-      expiresIn: "15m",
-    });
+    const accessToken = jwt.sign(
+      {
+        id: user._id,
+        role: user.role || "USER",
+      },
+      JWT_SECRET,
+      {
+        expiresIn: "15m",
+      },
+    );
 
     const refreshToken = jwt.sign(
       { id: user._id, jti: crypto.randomUUID() },
